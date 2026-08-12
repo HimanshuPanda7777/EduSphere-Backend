@@ -1,0 +1,26 @@
+<Solution>
+  <Folder Name="/backend/">
+    <Project Path="backend/ApiGateway/ApiGateway.csproj" />
+  </Folder>
+  <Folder Name="/backend/CourseService/">
+    <Project Path="backend/CourseService/Course.API/Course.API.csproj" />
+    <Project Path="backend/CourseService/Course.Application/Course.Application.csproj" />
+    <Project Path="backend/CourseService/Course.Domain/Course.Domain.csproj" />
+    <Project Path="backend/CourseService/Course.Infrastructure/Course.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/backend/EduSphere.Core/">
+    <Project Path="backend/EduSphere.Core/Core.API/Core.API.csproj" />
+    <Project Path="backend/EduSphere.Core/Core.Application/Core.Application.csproj" />
+    <Project Path="backend/EduSphere.Core/Core.Domain/Core.Domain.csproj" />
+    <Project Path="backend/EduSphere.Core/Core.Infrastructure/Core.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/backend/IdentityService/">
+    <Project Path="backend/IdentityService/Identity.API/Identity.API.csproj" />
+    <Project Path="backend/IdentityService/Identity.Application/Identity.Application.csproj" />
+    <Project Path="backend/IdentityService/Identity.Domain/Identity.Domain.csproj" />
+    <Project Path="backend/IdentityService/Identity.Infrastructure/Identity.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/backend/shared/">
+    <Project Path="backend/shared/SharedKernel/SharedKernel.csproj" />
+  </Folder>
+</Solution>
