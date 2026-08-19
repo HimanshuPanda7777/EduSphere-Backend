@@ -1,6 +1,7 @@
 using Course.Application.DTOs;
 using Course.Application.Interfaces;
 using Course.Domain;
+using Microsoft.Extensions.Logging;
 using SharedKernel.Exceptions;
 
 namespace Course.Application.Services;
@@ -8,10 +9,14 @@ namespace Course.Application.Services;
 public class CourseService
 {
     private readonly ICourseRepository _courseRepository;
+    private readonly ILogger<CourseService> _logger;
 
-    public CourseService(ICourseRepository courseRepository)
+    public CourseService(
+        ICourseRepository courseRepository,
+        ILogger<CourseService> logger)
     {
         _courseRepository = courseRepository;
+        _logger = logger;
     }
 
     public async Task<CourseResponse> CreateCourseAsync(CreateCourseRequest request, Guid instructorId)
@@ -41,6 +46,10 @@ public class CourseService
         };
 
         await _courseRepository.AddAsync(course);
+
+        _logger.LogInformation(
+            "Course created: {CourseId} '{Title}' by Instructor {InstructorId}",
+            course.Id, course.Title, instructorId);
 
         return MapToResponse(course);
     }
@@ -97,6 +106,10 @@ public class CourseService
 
         await _courseRepository.UpdateAsync(course);
 
+        _logger.LogInformation(
+            "Course updated: {CourseId} '{Title}' (Published: {IsPublished})",
+            course.Id, course.Title, course.IsPublished);
+
         return MapToResponse(course);
     }
 
@@ -114,6 +127,8 @@ public class CourseService
         }
 
         await _courseRepository.DeleteAsync(course);
+
+        _logger.LogInformation("Course deleted: {CourseId} '{Title}'", id, course.Title);
     }
 
     private static CourseResponse MapToResponse(CourseEntity course)

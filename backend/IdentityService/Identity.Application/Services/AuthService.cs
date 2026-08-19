@@ -1,6 +1,7 @@
 using Identity.Application.DTOs;
 using Identity.Application.Interfaces;
 using Identity.Domain;
+using Microsoft.Extensions.Logging;
 using SharedKernel.Exceptions;
 
 namespace Identity.Application.Services;
@@ -10,15 +11,18 @@ public class AuthService
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHasherService _passwordHasher;
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
+    private readonly ILogger<AuthService> _logger;
 
     public AuthService(
         IUserRepository userRepository,
         IPasswordHasherService passwordHasher,
-        IJwtTokenGenerator jwtTokenGenerator)
+        IJwtTokenGenerator jwtTokenGenerator,
+        ILogger<AuthService> logger)
     {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
         _jwtTokenGenerator = jwtTokenGenerator;
+        _logger = logger;
     }
 
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
@@ -47,6 +51,10 @@ public class AuthService
 
         await _userRepository.AddAsync(user);
 
+        _logger.LogInformation(
+            "User registered: {UserId} ({Email}) with role {Role}",
+            user.Id, user.Email, user.Role);
+
         var token = _jwtTokenGenerator.GenerateToken(user);
 
         return new AuthResponse
@@ -68,14 +76,18 @@ public class AuthService
         var user = await _userRepository.GetByEmailAsync(request.Email);
         if (user == null)
         {
+            _logger.LogWarning("Login failed: email {Email} not found", request.Email);
             throw new ValidationException("Invalid email or password.");
         }
 
         var isValidPassword = _passwordHasher.VerifyPassword(user, user.PasswordHash, request.Password);
         if (!isValidPassword)
         {
+            _logger.LogWarning("Login failed: invalid password for {Email}", request.Email);
             throw new ValidationException("Invalid email or password.");
         }
+
+        _logger.LogInformation("User logged in: {UserId} ({Email})", user.Id, user.Email);
 
         var token = _jwtTokenGenerator.GenerateToken(user);
 

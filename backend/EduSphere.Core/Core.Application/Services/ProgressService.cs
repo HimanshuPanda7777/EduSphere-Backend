@@ -1,6 +1,7 @@
 using Core.Application.DTOs;
 using Core.Application.Interfaces;
 using Core.Domain;
+using Microsoft.Extensions.Logging;
 using SharedKernel.Exceptions;
 
 namespace Core.Application.Services;
@@ -9,13 +10,16 @@ public class ProgressService
 {
     private readonly IProgressRepository _progressRepository;
     private readonly IEnrollmentRepository _enrollmentRepository;
+    private readonly ILogger<ProgressService> _logger;
 
     public ProgressService(
         IProgressRepository progressRepository,
-        IEnrollmentRepository enrollmentRepository)
+        IEnrollmentRepository enrollmentRepository,
+        ILogger<ProgressService> logger)
     {
         _progressRepository = progressRepository;
         _enrollmentRepository = enrollmentRepository;
+        _logger = logger;
     }
 
     public async Task<ProgressResponse> RecordProgressAsync(
@@ -41,6 +45,9 @@ public class ProgressService
 
         if (existing != null)
         {
+            _logger.LogInformation(
+                "Duplicate lesson skipped: Enrollment {EnrollmentId}, Lesson {LessonId} already recorded",
+                request.EnrollmentId, request.LessonId);
             // Lesson already recorded — return existing record
             return MapToResponse(existing);
         }
@@ -55,6 +62,10 @@ public class ProgressService
         };
 
         await _progressRepository.AddAsync(progress);
+
+        _logger.LogInformation(
+            "Lesson completed: {ProgressId} — Enrollment {EnrollmentId}, Lesson '{LessonTitle}'",
+            progress.Id, request.EnrollmentId, request.LessonTitle);
 
         return MapToResponse(progress);
     }

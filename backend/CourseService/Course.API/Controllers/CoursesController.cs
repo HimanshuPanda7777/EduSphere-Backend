@@ -3,7 +3,6 @@ using Course.Application.DTOs;
 using Course.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SharedKernel.Exceptions;
 
 namespace Course.API.Controllers;
 
@@ -45,15 +44,8 @@ public class CoursesController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<CourseResponse>> GetCourseById(Guid id)
     {
-        try
-        {
-            var course = await _courseService.GetCourseByIdAsync(id);
-            return Ok(course);
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
+        var course = await _courseService.GetCourseByIdAsync(id);
+        return Ok(course);
     }
 
     /// <summary>
@@ -76,19 +68,12 @@ public class CoursesController : ControllerBase
     public async Task<ActionResult<CourseResponse>> CreateCourse(
         [FromBody] CreateCourseRequest request)
     {
-        try
-        {
-            var instructorId = GetCurrentUserId();
-            var course = await _courseService.CreateCourseAsync(request, instructorId);
-            return CreatedAtAction(
-                nameof(GetCourseById),
-                new { id = course.Id },
-                course);
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var instructorId = GetCurrentUserId();
+        var course = await _courseService.CreateCourseAsync(request, instructorId);
+        return CreatedAtAction(
+            nameof(GetCourseById),
+            new { id = course.Id },
+            course);
     }
 
     /// <summary>
@@ -99,21 +84,10 @@ public class CoursesController : ControllerBase
     public async Task<ActionResult<CourseResponse>> UpdateCourse(
         Guid id, [FromBody] UpdateCourseRequest request)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            var userRole = GetCurrentUserRole();
-            var course = await _courseService.UpdateCourseAsync(id, request, userId, userRole);
-            return Ok(course);
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (ValidationException ex)
-        {
-            return StatusCode(403, new { message = ex.Message });
-        }
+        var userId = GetCurrentUserId();
+        var userRole = GetCurrentUserRole();
+        var course = await _courseService.UpdateCourseAsync(id, request, userId, userRole);
+        return Ok(course);
     }
 
     /// <summary>
@@ -123,21 +97,10 @@ public class CoursesController : ControllerBase
     [Authorize]
     public async Task<IActionResult> DeleteCourse(Guid id)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            var userRole = GetCurrentUserRole();
-            await _courseService.DeleteCourseAsync(id, userId, userRole);
-            return NoContent();
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (ValidationException ex)
-        {
-            return StatusCode(403, new { message = ex.Message });
-        }
+        var userId = GetCurrentUserId();
+        var userRole = GetCurrentUserRole();
+        await _courseService.DeleteCourseAsync(id, userId, userRole);
+        return NoContent();
     }
 
     private Guid GetCurrentUserId()

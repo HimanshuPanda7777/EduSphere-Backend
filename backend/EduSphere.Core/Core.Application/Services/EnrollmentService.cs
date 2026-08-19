@@ -1,6 +1,7 @@
 using Core.Application.DTOs;
 using Core.Application.Interfaces;
 using Core.Domain;
+using Microsoft.Extensions.Logging;
 using SharedKernel.Exceptions;
 
 namespace Core.Application.Services;
@@ -8,10 +9,14 @@ namespace Core.Application.Services;
 public class EnrollmentService
 {
     private readonly IEnrollmentRepository _enrollmentRepository;
+    private readonly ILogger<EnrollmentService> _logger;
 
-    public EnrollmentService(IEnrollmentRepository enrollmentRepository)
+    public EnrollmentService(
+        IEnrollmentRepository enrollmentRepository,
+        ILogger<EnrollmentService> logger)
     {
         _enrollmentRepository = enrollmentRepository;
+        _logger = logger;
     }
 
     public async Task<EnrollmentResponse> EnrollAsync(EnrollRequest request, Guid studentId)
@@ -36,6 +41,10 @@ public class EnrollmentService
         };
 
         await _enrollmentRepository.AddAsync(enrollment);
+
+        _logger.LogInformation(
+            "Enrollment created: {EnrollmentId} — Student {StudentId} enrolled in Course {CourseId}",
+            enrollment.Id, studentId, request.CourseId);
 
         return MapToResponse(enrollment);
     }
@@ -84,6 +93,10 @@ public class EnrollmentService
             enrollment.Status = EnrollmentStatus.Completed;
             enrollment.CompletedAt = DateTime.UtcNow;
             enrollment.ProgressPercentage = 100;
+
+            _logger.LogInformation(
+                "Enrollment completed: {EnrollmentId} — Student {StudentId} completed Course {CourseId}",
+                enrollmentId, studentId, enrollment.CourseId);
         }
 
         await _enrollmentRepository.UpdateAsync(enrollment);
@@ -105,6 +118,10 @@ public class EnrollmentService
         }
 
         await _enrollmentRepository.DeleteAsync(enrollment);
+
+        _logger.LogInformation(
+            "Student unenrolled: {EnrollmentId} — Student {StudentId} from Course {CourseId}",
+            id, enrollment.StudentId, enrollment.CourseId);
     }
 
     private static EnrollmentResponse MapToResponse(Enrollment enrollment)

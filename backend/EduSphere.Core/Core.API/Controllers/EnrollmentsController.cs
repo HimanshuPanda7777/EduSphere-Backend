@@ -3,7 +3,6 @@ using Core.Application.DTOs;
 using Core.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SharedKernel.Exceptions;
 
 namespace Core.API.Controllers;
 
@@ -26,19 +25,12 @@ public class EnrollmentsController : ControllerBase
     public async Task<ActionResult<EnrollmentResponse>> Enroll(
         [FromBody] EnrollRequest request)
     {
-        try
-        {
-            var studentId = GetCurrentUserId();
-            var enrollment = await _enrollmentService.EnrollAsync(request, studentId);
-            return CreatedAtAction(
-                nameof(GetEnrollmentById),
-                new { id = enrollment.Id },
-                enrollment);
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var studentId = GetCurrentUserId();
+        var enrollment = await _enrollmentService.EnrollAsync(request, studentId);
+        return CreatedAtAction(
+            nameof(GetEnrollmentById),
+            new { id = enrollment.Id },
+            enrollment);
     }
 
     /// <summary>
@@ -48,15 +40,8 @@ public class EnrollmentsController : ControllerBase
     [Authorize]
     public async Task<ActionResult<EnrollmentResponse>> GetEnrollmentById(Guid id)
     {
-        try
-        {
-            var enrollment = await _enrollmentService.GetEnrollmentByIdAsync(id);
-            return Ok(enrollment);
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
+        var enrollment = await _enrollmentService.GetEnrollmentByIdAsync(id);
+        return Ok(enrollment);
     }
 
     /// <summary>
@@ -91,21 +76,10 @@ public class EnrollmentsController : ControllerBase
     public async Task<ActionResult<EnrollmentResponse>> UpdateProgress(
         Guid id, [FromBody] UpdateProgressRequest request)
     {
-        try
-        {
-            var studentId = GetCurrentUserId();
-            var enrollment = await _enrollmentService
-                .UpdateProgressAsync(id, request.ProgressPercentage, studentId);
-            return Ok(enrollment);
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (ValidationException ex)
-        {
-            return StatusCode(403, new { message = ex.Message });
-        }
+        var studentId = GetCurrentUserId();
+        var enrollment = await _enrollmentService
+            .UpdateProgressAsync(id, request.ProgressPercentage, studentId);
+        return Ok(enrollment);
     }
 
     /// <summary>
@@ -115,21 +89,10 @@ public class EnrollmentsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> Unenroll(Guid id)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            var userRole = GetCurrentUserRole();
-            await _enrollmentService.UnenrollAsync(id, userId, userRole);
-            return NoContent();
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (ValidationException ex)
-        {
-            return StatusCode(403, new { message = ex.Message });
-        }
+        var userId = GetCurrentUserId();
+        var userRole = GetCurrentUserRole();
+        await _enrollmentService.UnenrollAsync(id, userId, userRole);
+        return NoContent();
     }
 
     private Guid GetCurrentUserId()
